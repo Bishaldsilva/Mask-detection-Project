@@ -4,8 +4,6 @@ from keras.models import load_model
 import cv2 as cv
 import numpy as np
 from os.path import join
-import os
-import gdown
 
 __model = None
 __clf = None
@@ -13,22 +11,11 @@ __clf = None
 color ={0:(0,255,0),1:(0,0,255), 2:(86, 13, 163)}
 catg = ['Mask','No Mask', 'Wrong Mask']
 
-FILE_ID = '1n44gIe3ZnWW9ukfNXIHauZCN9ObCSb5D'
-MODEL_FILE_NAME = 'mask_detection_model_2.h5'
-LOCAL_MODEL_PATH = f'./artifacts/{MODEL_FILE_NAME}'
-GDRIVE_URL = f'https://drive.google.com/uc?id={FILE_ID}'
-
-def download_model_from_gdrive():
-    if not os.path.exists(LOCAL_MODEL_PATH):
-        gdown.download(GDRIVE_URL, LOCAL_MODEL_PATH, quiet=False)
-
 def load_artifacts():
     global __model
     global __clf
 
-    download_model_from_gdrive()
-
-    __model = load_model(join('artifacts', 'mask_detection_model_2.h5'))
+    __model = load_model(join('artifacts', 'mask_detection_model_3.h5'))
     __clf = cv.CascadeClassifier(join('artifacts', 'haarcascade_frontalface_default.xml'))
 
 load_artifacts()
@@ -44,7 +31,7 @@ def classify(path):
 
     for x,y,w,h in faces:
         f_img = image[y:y+h,x:x+w]
-    f_img = cv.resize(f_img,(128,128))
+    f_img = cv.resize(f_img,(50,50))
     pred_case = __model.predict(np.array([f_img])/255)
     
     n = [np.argmax(i) for i in pred_case]
