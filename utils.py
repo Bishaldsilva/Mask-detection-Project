@@ -1,9 +1,7 @@
-import tensorflow as tf
-from tensorflow import keras
-from keras.models import load_model
 import cv2 as cv
 import numpy as np
 from os.path import join
+from tflite_runtime.interpreter import Interpreter
 
 __model = None
 __clf = None
@@ -15,10 +13,35 @@ def load_artifacts():
     global __model
     global __clf
 
-    __model = load_model(join('artifacts', 'mask_detection_model_3.h5'))
+    __model = Interpreter(model_path='/content/model.tflite')
+    __model.allocate_tensors()
+
     __clf = cv.CascadeClassifier(join('artifacts', 'haarcascade_frontalface_default.xml'))
 
 load_artifacts()
+
+# def classify(path):
+#     image = cv.imread(path)
+#     gray = cv.cvtColor(image,cv.COLOR_BGR2GRAY)
+#     faces = __clf.detectMultiScale(gray,1.3,4)
+    
+#     if len(faces) == 0:
+#         cv.imwrite(join('images','result.jpg'),image)
+#         return "No face Detected"
+
+#     for x,y,w,h in faces:
+#         f_img = image[y:y+h,x:x+w]
+#     f_img = cv.resize(f_img,(50,50))
+#     pred_case = __model.predict(np.array([f_img])/255)
+    
+#     n = [np.argmax(i) for i in pred_case]
+#     cv.rectangle(image,(x,y),(x+w,y+h),color[n[0]],2)
+#     cv.rectangle(image,(x,y-40),(x+w,y),color[n[0]],-1)
+#     cv.putText(image,str(catg[n[0]]),(x,y-10),cv.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),2)
+#     rgb = cv.cvtColor(image,cv.COLOR_BGR2RGB)
+#     cv.imwrite(join('images','result.jpg'),image)
+
+#     return f"Probability: {round(pred_case[0][n[0]] * 100, 2)}%"
 
 def classify(path):
     image = cv.imread(path)
@@ -32,16 +55,27 @@ def classify(path):
     for x,y,w,h in faces:
         f_img = image[y:y+h,x:x+w]
     f_img = cv.resize(f_img,(50,50))
-    pred_case = __model.predict(np.array([f_img])/255)
-    
-    n = [np.argmax(i) for i in pred_case]
+    f_img = np.array([f_img])/255
+
+    # Set input tensor
+    input_details = interpreter.get_input_details()
+    interpreter.set_tensor(input_details[0]['index'], f_img.astype(np.float32))
+
+    # Run inference
+    interpreter.invoke()
+
+    # Get output
+    output_details = interpreter.get_output_details()
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+
+    n = [np.argmax(i) for i in output_data]
     cv.rectangle(image,(x,y),(x+w,y+h),color[n[0]],2)
     cv.rectangle(image,(x,y-40),(x+w,y),color[n[0]],-1)
     cv.putText(image,str(catg[n[0]]),(x,y-10),cv.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),2)
     rgb = cv.cvtColor(image,cv.COLOR_BGR2RGB)
-    cv.imwrite(join('images','result.jpg'),image)
+    cv.imwrite('/content/result.jpg',image)
 
-    return f"Probability: {round(pred_case[0][n[0]] * 100, 2)}%"
+    return f"Probability: {round(output_data[0][n[0]] * 100, 2)}%"
 
 if __name__ == '__main__':
     load_artifacts()
