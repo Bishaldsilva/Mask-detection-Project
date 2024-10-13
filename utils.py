@@ -13,7 +13,7 @@ def load_artifacts():
     global __model
     global __clf
 
-    __model = Interpreter(model_path=join('artifacts', 'modeltflite'))
+    __model = Interpreter(model_path=join('artifacts', 'model.tflite'))
     __model.allocate_tensors()
 
     __clf = cv.CascadeClassifier(join('artifacts', 'haarcascade_frontalface_default.xml'))
