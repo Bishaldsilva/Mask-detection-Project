@@ -13,7 +13,7 @@ def load_artifacts():
     global __model
     global __clf
 
-    __model = Interpreter(model_path='/content/model.tflite')
+    __model = Interpreter(model_path=join('artifacts', 'modeltflite'))
     __model.allocate_tensors()
 
     __clf = cv.CascadeClassifier(join('artifacts', 'haarcascade_frontalface_default.xml'))
@@ -58,15 +58,15 @@ def classify(path):
     f_img = np.array([f_img])/255
 
     # Set input tensor
-    input_details = interpreter.get_input_details()
-    interpreter.set_tensor(input_details[0]['index'], f_img.astype(np.float32))
+    input_details = __model.get_input_details()
+    __model.set_tensor(input_details[0]['index'], f_img.astype(np.float32))
 
     # Run inference
-    interpreter.invoke()
+    __model.invoke()
 
     # Get output
-    output_details = interpreter.get_output_details()
-    output_data = interpreter.get_tensor(output_details[0]['index'])
+    output_details = __model.get_output_details()
+    output_data = __model.get_tensor(output_details[0]['index'])
 
     n = [np.argmax(i) for i in output_data]
     cv.rectangle(image,(x,y),(x+w,y+h),color[n[0]],2)
