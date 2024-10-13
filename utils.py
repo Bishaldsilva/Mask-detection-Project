@@ -13,6 +13,7 @@ def load_artifacts():
     global __model
     global __clf
 
+    print(os.path.abspath(join('artifacts', 'model.tflite')))
     __model = Interpreter(model_path=join('artifacts', 'model.tflite'))
     __model.allocate_tensors()
 
