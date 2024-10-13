@@ -39,6 +39,7 @@ def upload_file():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
+        print(file_path)
         proba = classify(file_path)
 
         if os.path.exists(file_path):
