@@ -75,7 +75,10 @@ def classify(path):
     cv.rectangle(image,(x,y-40),(x+w,y),color[n[0]],-1)
     cv.putText(image,str(catg[n[0]]),(x,y-10),cv.FONT_HERSHEY_COMPLEX,0.8,(255,255,255),2)
     rgb = cv.cvtColor(image,cv.COLOR_BGR2RGB)
-    cv.imwrite('/images/result.jpg',image)
+    s = cv.imwrite('/images/result.jpg',image)
+
+    if not s:
+        return "Image not exist"
 
     return f"Probability: {round(output_data[0][n[0]] * 100, 2)}%"
 
